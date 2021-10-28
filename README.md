@@ -1,5 +1,7 @@
 # An analysis of Societal Bias in SOTA NLP Transfer Learning
 
+> **NOTE**: This is not a complete recreation of the INLP algorithm, but only a toy example of apply a null projection onto one layer of the encoder. The bias can still be relearnt through the other preceeding layers.
+
 This repository contains code for demonstrating a simplistic application of Nullspace Projection on a NLP Attention-Based Transformer.
 
 The code is largely taken from [pliang279's](https://github.com/pliang279/LM_bias) LM_bias repository and relies heavily on [shauli-ravfogel
@@ -13,7 +15,7 @@ The code is largely taken from [pliang279's](https://github.com/pliang279/LM_bia
 - You will need to clone the [nullspace projection](https://github.com/shauli-ravfogel/nullspace_projection) into this directory before running.
 
 
-This repo can be accessed primarily via `ainlp-debaiasing.ipynb`. This notebook contains cells that install dependencies and generate the appropriate resources. It also runs the code described below.
+This repo can be accessed primarily via `nullspace_bert_demonstration.ipynb`. This notebook contains cells that install dependencies and generate the appropriate resources. It also runs the code described below.
 
 <br>
 
