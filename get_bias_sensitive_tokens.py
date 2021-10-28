@@ -39,8 +39,8 @@ def bias_subspace(embed, num_components=None):
         pair.append((embed[p[0]], embed[p[1]]))
     pca = doPCA(pair)
     bias_direction = pca.components_[0] # using principle component that has the highest variance in gender bias subspace
-    print("pca bias direction subset: ", bias_direction[:10])
-    print("pca explained variance ratio: ", pca.explained_variance_ratio_)
+    print(f"pca explained variance ratio: {pca.explained_variance_ratio_} \n")
+    
     return bias_direction
 
 
@@ -59,9 +59,9 @@ def data_preprocess():
     female_tokens, female_scores = list(zip(*group2))
     neutral_tokens, neural_scores = list(zip(*group3))
     
-    print(f"top 100 male tokens: {male_tokens}\n\n")
-    print(f"top 100 female tokens: {female_tokens}\n\n")
-    print(f"top 100 neutral tokens: {neutral_tokens}\n\n")
+    print(f"TOP 100 MALE SENSITIVE TOKENS \n {male_tokens}\n\n")
+    print(f"TOP 100 FEMALE SENSITIVE TOKENS \n {female_tokens}\n\n")
+    print(f"TOP 100 NEUTRAL TOKENS \n {neutral_tokens}\n\n")
 
     np.save(f"{BASE_PATH}/male_bias_sensitive_tokens.npy", np.array([embed[m_token] for m_token in male_tokens]))
     np.save(f"{BASE_PATH}/female_bias_sensitive_tokens.npy", np.array([embed[f_token] for f_token in female_tokens]))

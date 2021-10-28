@@ -37,7 +37,7 @@ from torch.nn import functional as F
 
 GENDER_CLF = LinearSVC
 GENDER_CLF_PARAMS = {'fit_intercept': False, 'class_weight': None, "dual": False, 'random_state': 0}
-NUM_CLASSIFIERS = 40
+NUM_CLASSIFIERS = 25
 EMBEDDINGS_SIZE = 768
 IS_AUTOREGRESSIVE = True
 MIN_ACCURACY = 0
@@ -139,10 +139,6 @@ def debias_effect_analysis(P, rowspace_projs, Ws, X_train, X_dev, X_test, Y_trai
     print("V-measure-before (original space): {}".format(
         compute_v_measure(all_significantly_biased_vecs, all_significantly_biased_labels), k=2))
     print("V-measure-after (original space): {}".format(compute_v_measure(X_test_cleaned, Y_test), k=2))
-
-    rank_before = np.linalg.matrix_rank(X_train)
-    rank_after = np.linalg.matrix_rank(X_trained_cleaned)
-    print("Rank before: {}; Rank after: {}".format(rank_before, rank_after))
 
 
 if __name__ == '__main__':
