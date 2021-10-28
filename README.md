@@ -1,62 +1,61 @@
-# Towards Understanding and Mitigating Social Biases in Language Models
+# An analysis of Societal Bias in SOTA NLP Transfer Learning
 
-This repo contains code and data for evaluating and mitigating bias from generation models.
+This repository contains code for demonstrating a simplistic application of Nullspace Projection on a NLP Attention-Based Transformer.
+
+The code is largely taken from [pliang279's](https://github.com/pliang279/LM_bias) LM_bias repository and relies heavily on [shauli-ravfogel
+'s](https://github.com/shauli-ravfogel/nullspace_projection) nullspace projection repository.
 
 
-## Paper
+## Instructions
 
-[**Towards Understanding and Mitigating Social Biases in Language Models**](https://arxiv.org/pdf/2106.13219.pdf)<br>
-[Paul Pu Liang](http://www.cs.cmu.edu/~pliang/), Chiyu Wu, [Louis-Philippe Morency](https://www.cs.cmu.edu/~morency/), and [Ruslan Salakhutdinov](https://www.cs.cmu.edu/~rsalakhu/)<br>
-ICML 2021
+#### Prerequisites:
+- `Python 3.6.7`
+- You will need to clone the [nullspace projection](https://github.com/shauli-ravfogel/nullspace_projection) into this directory before running.
 
-If you find this repository useful, please cite our paper:
-```
-@inproceedings{liang2021towards,
-  title={Towards Understanding and Mitigating Social Biases in Language Models},
-  author={Liang, Paul Pu and Wu, Chiyu and Morency, Louis-Philippe and Salakhutdinov, Ruslan},
-  booktitle={International Conference on Machine Learning},
-  pages={6565--6576},
-  year={2021},
-  organization={PMLR}
-}
-```
 
-### 1. Identify bias-sensitive tokens, obtain bias subspace and create the dataset to train the bias classifier
-```python
-python data_preprocess.py --embed_source glove --by_pca True --num_components 5 --save_subspace False
-```
+This repo can be accessed primarily via `ainlp-debaiasing.ipynb`. This notebook contains cells that install dependencies and generate the appropriate resources. It also runs the code described below.
 
-Glove embedding and gpt2 embedding are large files, you can download or extract them by yourself. We also provide the [google drive link](https://drive.google.com/drive/folders/1up_8TC3_RxyDcmTrm9GKk1rU3dAt76ND?usp=sharing).
+<br>
 
-### 2. Train the bias classifier and learn the projection matrix P
-```python
-python context_nullspace_projection.py
-```
-The code of nullspace projection is from [INLP](https://github.com/shauli-ravfogel/nullspace_projection). Thanks for their great work!
+#### Discovering Gender Bias Sensitive Tokens
 
-To run the INLP experiments, you need to git clone https://github.com/shauli-ravfogel/nullspace_projection first, and put it under the root directory of this repo.
+The module `get_bias_sensitive_tokens.py`, uses our predefined gender defining terms to construction a gender bias subspace using PCA. It then takes the highest variance principle component and uses it to discover bias sensitive words in our vocabulary.
+These words are printed to the console and corresponding embeddings are saved for future use.
 
-### 3. Evaluate Bias existing in the gpt2
-#### Local Bias
-```python
-cd src/local_bias
-python measure_local_bias.py
-```
+You can run this script with the command:
 
-It will take long time to run the evaluation script on the full data. Here we provide the subset of our evaluation data now. Full data will be uploaded via google drive soon.
+-  `python get_bias_sensitive_tokens.py`
 
-#### Global Bias
+<br>
 
-We use the regard score difference as the metric for global bias. The evaluation code is from https://github.com/ewsheng/nlg-bias. Thanks for their great work!
+#### Discovering a NullSpace Projection
 
-```python
-git clone https://github.com/ewsheng/nlg-bias.git
-cd src/global_bias
-python generate_full_sentence.py --algorithm INLP
-```
+The module `context_nullspace_projection.py` takes the previously discovered embeddings of bias sensitive words and uses their bias direction as a label in a classification task.
 
-After full sentences are generated, you need to use the regard classifier to measure the global bias. 
+It iteratively trains several classifiers on the data, each time generating a projection, `P_i`, that removes the information used by the classifiers weights to linearly separate the embeddings with regards to gender.
 
-To reproduce the result in our paper, we also provide the projection matrix P for the gender bias test in `data/saved_P/P_gender_test_79.npy`
+You can run this script with the command:
 
-## Acknowledgements
+- `python context_nullspace_projection.py`
+
+<br>
+
+## Papers
+- [**Lipstick on a Pig: Debiasing Methods Cover up Systematic Gender Biases in Word Embeddings But do not Remove Them**](https://arxiv.org/pdf/1903.03862.pdf) <br>
+Hila Gonen and Yoav Goldberg
+
+- [**Null It Out: Guarding Protected Attributes by Iterative Nullspace Projection**](https://aclanthology.org/2020.acl-main.647.pdf) <br>
+Shauli Ravfogel, Yanai Elazar, Hila Gonen, Michael Twiton and Yoav Goldberg
+
+- [**Towards Understanding and Mitigating Social Biases in Language Models**](https://arxiv.org/pdf/2106.13219.pdf) <br>
+Paul Pu Liang, Chiyu Wu,Louis-Philippe Morency, and Ruslan Salakhutdinov<br>
+ICML 2021 <br>
+
+- [**Man is to Computer Programmer as Woman is to Homemaker? Debiasing Word Embeddings**](https://arxiv.org/pdf/1607.06520.pdf) <br>
+Tolga Bolukbasi, Kai-Wei Chang, James Zou, Venkatesh Saligrama and Adam Kalai
+
+- [**Investigating Gender Bias in BERT**](https://arxiv.org/abs/2009.05021) <br>
+Rishabh Bhardwaj, Navonil Majumder and Soujanya Poria <br>
+
+- [**BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding**](https://arxiv.org/abs/1810.04805) <br>
+Jacob Devlin, Ming-Wei Chang, Kenton Lee and Kristina Toutanova <br><br>
