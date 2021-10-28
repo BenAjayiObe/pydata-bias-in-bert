@@ -1,39 +1,17 @@
 # Some codes are from https://github.com/shauli-ravfogel/nullspace_projection
 
-import numpy as np
-import torch
-import time
-
 import sys
 sys.path.append("nullspace_projection/src")
 sys.path.append("nullspace_projection/")
-import classifier
 import debias
-import gensim
-import codecs
-import json
-from gensim.models.keyedvectors import Word2VecKeyedVectors
-from gensim.models import KeyedVectors
 import random
 import sklearn
-from sklearn import model_selection
+import numpy as np
 from sklearn import cluster
 from sklearn import metrics
 from sklearn.manifold import TSNE
-from sklearn.svm import LinearSVC, SVC
-from sklearn.linear_model import SGDClassifier, Perceptron, LogisticRegression, PassiveAggressiveClassifier
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-from sklearn.neural_network import MLPClassifier
-from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.decomposition import PCA
-import scipy
-from scipy import linalg
-from scipy.stats.stats import pearsonr
-import tqdm
-import matplotlib
+from sklearn.svm import LinearSVC
 import matplotlib.pyplot as plt
-from sklearn.utils import shuffle
-from torch.nn import functional as F
 
 GENDER_CLF = LinearSVC
 GENDER_CLF_PARAMS = {'fit_intercept': False, 'class_weight': None, "dual": False, 'random_state': 0}
@@ -42,8 +20,9 @@ EMBEDDINGS_SIZE = 768
 IS_AUTOREGRESSIVE = True
 MIN_ACCURACY = 0
 DROPOUT_RATE = 0
-TEST_SET_RATIO=0.3
+TEST_SET_RATIO = 0.3
 RANDOM_STATE = 42
+
 
 def split_dataset(male_feat, female_feat, neut_feat):
     random.seed(RANDOM_STATE)
@@ -63,22 +42,11 @@ def split_dataset(male_feat, female_feat, neut_feat):
     return X_train, X_dev, X_test, Y_train, Y_dev, Y_test
 
 
-def apply_nullspace_projection(X_train, X_dev, X_test, Y_train, Y_dev, Y_test):
-    return debias.get_debiasing_projection(GENDER_CLF, GENDER_CLF_PARAMS,
-                                                            ITERATIONS, EMBEDDINGS_SIZE, IS_AUTOREGRESSIVE,
-                                                            MIN_ACCURACY, X_train, Y_train, X_dev, Y_dev,
-                                                            Y_train_main=None, Y_dev_main=None,
-                                                            by_class=False, dropout_rate=DROPOUT_RATE)
-
-    return P, rowspace_projs, Ws
-
-
-def debias_effect_analysis(P, rowspace_projs, Ws, X_train, X_dev, X_test, Y_train, Y_dev, Y_test):
-    def tsne(vecs, labels, title="", ind2label=None, words=None, metric="l2"):
-        tsne = TSNE(n_components=2, perplexity = 50, metric="cosine", n_iter=3000, square_distances=True) #, angle = 0.5, perplexity = 20,  n_iter=3000)
+def debias_effect_analysis(P, X_test, Y_test):
+    def tsne(vecs, labels, title="", ind2label=None):
+        tsne = TSNE(n_components=2, perplexity=50, metric="cosine", n_iter=3000, square_distances=True)
         vecs_2d = tsne.fit_transform(vecs)
         label_names = sorted(list(set(labels.tolist())))
-        num_labels = len(label_names)
         names = sorted(set(labels.tolist()))
 
         plt.figure(figsize=(6, 5))
@@ -105,14 +73,6 @@ def debias_effect_analysis(P, rowspace_projs, Ws, X_train, X_dev, X_test, Y_trai
     tsne_after = tsne(all_significantly_biased_cleaned, all_significantly_biased_labels,
                       ind2label=ind2label, title="after-null-projection")
 
-    def perform_purity_test(vecs, k, labels_true):
-        np.random.seed(0)
-        clustering = sklearn.cluster.KMeans(n_clusters=k)
-        clustering.fit(vecs)
-        labels_pred = clustering.labels_
-        score = sklearn.metrics.homogeneity_score(labels_true, labels_pred)
-        return score
-
     def compute_v_measure(vecs, labels_true, k=2):
         np.random.seed(0)
         clustering = sklearn.cluster.KMeans(n_clusters=k)
@@ -121,17 +81,9 @@ def debias_effect_analysis(P, rowspace_projs, Ws, X_train, X_dev, X_test, Y_trai
         return sklearn.metrics.v_measure_score(labels_true, labels_pred)
 
     # remove neutral class, keep only male and female biased
-    X_dev = X_dev[Y_dev != -1]
-    X_train = X_train[Y_train != -1]
     X_test = X_test[Y_test != -1]
-
-    Y_dev = Y_dev[Y_dev != -1]
-    Y_train = Y_train[Y_train != -1]
     Y_test = Y_test[Y_test != -1]
-
-    X_dev_cleaned = (P.dot(X_dev.T)).T
     X_test_cleaned = (P.dot(X_test.T)).T
-    X_trained_cleaned = (P.dot(X_train.T)).T
 
     print("V-measure-before (TSNE space): {}".format(compute_v_measure(tsne_before, all_significantly_biased_labels)))
     print("V-measure-after (TSNE space): {}".format(compute_v_measure(tsne_after, all_significantly_biased_labels)))
@@ -162,5 +114,5 @@ if __name__ == '__main__':
                                                             Y_dev_main=None,
                                                             by_class=False,
                                                             dropout_rate=DROPOUT_RATE)
-    debias_effect_analysis(P, rowspace_projs, Ws, X_train, X_dev, X_test, Y_train, Y_dev, Y_test)
+    debias_effect_analysis(P, X_test, Y_test)
     np.save("data/nullspace_vector.npy", P)
