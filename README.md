@@ -1,6 +1,6 @@
 # An analysis of Societal Bias in SOTA NLP Transfer Learning
 
-> **NOTE**: This is not a complete recreation of the INLP algorithm, but only a toy example of apply a null projection onto one layer of the encoder. The bias can still be relearnt through the other preceeding layers.
+> **NOTE**: This is not a complete recreation of the INLP algorithm, but only a toy example of applying a null projection onto one layer of the encoder. The bias can still be relearnt through the other preceeding layers.
 
 This repository contains code for demonstrating a simplistic application of Nullspace Projection on a NLP Attention-Based Transformer.
 
